@@ -1,0 +1,7 @@
+node_modules/
+dist/
+src-tauri/target/
+.DS_Store
+*.key
+*.key.pub
+DANE_DO_GITHUB_SECRETS.txt
