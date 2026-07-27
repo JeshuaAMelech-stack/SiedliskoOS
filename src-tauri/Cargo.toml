@@ -1,6 +1,6 @@
 [package]
 name="siedliskoos"
-version="0.2.0"
+version="0.2.1"
 description="SiedliskoOS Desktop"
 authors= ["SiedliskoOS"]
 edition="2021"
