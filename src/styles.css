@@ -2,3 +2,58 @@
 
 .notice{margin:-10px 0 16px;padding:11px 14px;border-radius:9px;background:#e3f2e8;color:#245e3d;font-size:13px}.notice.error{background:#fde8e5;color:#92362d}button:disabled{opacity:.6;cursor:wait}
 .headerActions{display:flex;gap:10px;align-items:center}.updateButton{white-space:nowrap}.updateOverlay{position:fixed;inset:0;background:rgba(8,18,14,.62);backdrop-filter:blur(5px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px}.updateModal{width:min(520px,100%);background:#fff;border-radius:22px;padding:28px;box-shadow:0 28px 80px rgba(0,0,0,.34);text-align:center}.updateIcon{width:58px;height:58px;border-radius:18px;background:#e8f5eb;margin:0 auto 14px;display:grid;place-items:center;font-size:34px;color:#17633a}.updateModal h2{margin:0 0 9px}.updateModal p{line-height:1.55;color:#34443b}.releaseNotes{text-align:left;white-space:pre-wrap;max-height:180px;overflow:auto;background:#f4f7f5;border-radius:12px;padding:13px;margin:15px 0;font-size:14px}.progressTrack{height:10px;background:#e6ece8;border-radius:20px;overflow:hidden;margin:18px 0}.progressTrack>div{height:100%;background:#227447;transition:width .18s ease}.updateModal .actions{justify-content:center}
+
+
+/* SiedliskoOS settings patch */
+.settingsPage {
+  display: grid;
+  gap: 16px;
+  max-width: 850px;
+}
+
+.settingsCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px;
+  border-radius: 16px;
+  background: var(--card, #ffffff);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+}
+
+.settingsColumn {
+  align-items: flex-start;
+}
+
+.settingsCard div {
+  display: grid;
+  gap: 6px;
+}
+
+.settingsCard p {
+  margin: 0;
+  opacity: 0.7;
+}
+
+.settingsLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.settingsBadge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.settingsCard button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
