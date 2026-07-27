@@ -9,7 +9,8 @@ if [ ! -f "$KEY_PATH" ]; then
 fi
 read -s -p "Hasło klucza aktualizacji: " KEY_PASSWORD
 echo
-export TAURI_SIGNING_PRIVATE_KEY="$KEY_PATH"
+unset TAURI_SIGNING_PRIVATE_KEY_PATH
+export TAURI_SIGNING_PRIVATE_KEY="$(cat "$KEY_PATH")"
 export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$KEY_PASSWORD"
 npm install
 npm run tauri build -- --bundles app
