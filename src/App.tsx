@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { addDemoProperties } from "./database/properties";
 import SettingsView from "./components/SettingsView";
 import PropertyForm from "./components/PropertyForm";
 import DashboardView from "./components/DashboardView";
@@ -9,12 +8,12 @@ import Header, { type AppView } from "./components/Header";
 import Sidebar from "./components/Sidebar";
 import useProperties from "./hooks/useProperties";
 import useBackup from "./hooks/useBackup";
+import useDemoData from "./hooks/useDemoData";
 
 export default function App() {
   const [view, setView] = useState<AppView>("dash");
   const [filter, setFilter] = useState("all");
   const [q, setQ] = useState("");
-  const [demoBusy, setDemoBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
   const {
@@ -30,6 +29,7 @@ export default function App() {
   } = useProperties();
 
   const { backupBusy, createBackup } = useBackup(setNotice);
+  const { demoBusy, addDemoData } = useDemoData(load, setNotice);
 
   const shown = useMemo(
     () =>
@@ -40,27 +40,6 @@ export default function App() {
       ),
     [items, filter, q],
   );
-
-  const addDemoData = async () => {
-    setDemoBusy(true);
-    setNotice("Dodaję dane testowe…");
-
-    try {
-      const n = await addDemoProperties();
-      await load();
-      setNotice(
-        n > 0
-          ? `Dodano ${n} działek testowych.`
-          : "Dane testowe już znajdują się w bazie.",
-      );
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      setNotice(`Błąd: ${msg}`);
-      alert(`Nie udało się dodać danych testowych:\n\n${msg}`);
-    } finally {
-      setDemoBusy(false);
-    }
-  };
 
   return (
     <div className="app">
