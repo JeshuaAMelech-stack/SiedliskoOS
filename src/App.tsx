@@ -7,15 +7,14 @@ import {
   listProperties,
   saveProperty,
   deleteProperty,
-  deleteTestProperties,
   addDemoProperties,
 } from "./database/properties";
 import type { Property as Item } from "./models/Property";
 import UpdateChecker from "./UpdateChecker";
-import PropertyTable from "./components/PropertyTable";
 import SettingsView from "./components/SettingsView";
 import PropertyForm from "./components/PropertyForm";
 import DashboardView from "./components/DashboardView";
+import ListView from "./components/ListView";
 import { formatMoney, propertyScore } from "./utils/property";
 
 const blank: Omit<Item, "id"> = {
@@ -196,45 +195,16 @@ export default function App() {
         )}
 
         {view === "list" && (
-          <>
-            <div className="toolbar">
-              <input
-                placeholder="Szukaj…"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-              />
-
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-              >
-                <option value="all">Wszystkie</option>
-                <option value="real">Realne</option>
-                <option value="test">Testowe</option>
-              </select>
-
-              <button
-                onClick={async () => {
-                  if (confirm("Usunąć testowe?")) {
-                    await deleteTestProperties();
-                    await load();
-                  }
-                }}
-              >
-                Usuń testowe
-              </button>
-            </div>
-
-            <PropertyTable
-              rows={shown}
-              open={open}
-              del={async (id) => {
-                if (confirm("Usunąć rekord?")) {
-                  await removeItem(id);
-                }
-              }}
-            />
-          </>
+          <ListView
+            rows={shown}
+            query={q}
+            filter={filter}
+            setQuery={setQ}
+            setFilter={setFilter}
+            open={open}
+            deleteItem={removeItem}
+            reload={load}
+          />
         )}
 
         {view === "map" && (
