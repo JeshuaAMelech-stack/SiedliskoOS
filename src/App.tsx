@@ -8,12 +8,12 @@ import {
   addDemoProperties,
 } from "./database/properties";
 import type { Property as Item } from "./models/Property";
-import UpdateChecker from "./UpdateChecker";
 import SettingsView from "./components/SettingsView";
 import PropertyForm from "./components/PropertyForm";
 import DashboardView from "./components/DashboardView";
 import ListView from "./components/ListView";
 import MapView from "./components/MapView";
+import Header, { type AppView } from "./components/Header";
 
 const blank: Omit<Item, "id"> = {
   name: "",
@@ -34,9 +34,7 @@ const blank: Omit<Item, "id"> = {
 };
 
 export default function App() {
-  const [view, setView] = useState<"dash" | "list" | "map" | "settings">(
-    "dash",
-  );
+  const [view, setView] = useState<AppView>("dash");
   const [items, setItems] = useState<Item[]>([]);
   const [filter, setFilter] = useState("all");
   const [q, setQ] = useState("");
@@ -88,6 +86,27 @@ export default function App() {
     await load();
   };
 
+  const addDemoData = async () => {
+    setDemoBusy(true);
+    setNotice("Dodaję dane testowe…");
+
+    try {
+      const n = await addDemoProperties();
+      await load();
+      setNotice(
+        n > 0
+          ? `Dodano ${n} działek testowych.`
+          : "Dane testowe już znajdują się w bazie.",
+      );
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setNotice(`Błąd: ${msg}`);
+      alert(`Nie udało się dodać danych testowych:\n\n${msg}`);
+    } finally {
+      setDemoBusy(false);
+    }
+  };
+
   const createBackup = async () => {
     setBackupBusy(true);
     setNotice("Tworzę kopię zapasową…");
@@ -118,63 +137,13 @@ export default function App() {
       </aside>
 
       <main>
-        <header>
-          <div>
-            <h1>
-              {view === "dash"
-                ? "Dashboard"
-                : view === "list"
-                  ? "Nieruchomości"
-                  : view === "map"
-                    ? "Mapa działek"
-                    : "Ustawienia"}
-            </h1>
-            <p>Wyszukiwanie siedliska w Pomorskiem</p>
-          </div>
-
-          <div className="headerActions">
-            <UpdateChecker />
-
-            <button
-              className="secondary"
-              disabled={demoBusy}
-              onClick={async () => {
-                setDemoBusy(true);
-                setNotice("Dodaję dane testowe…");
-
-                try {
-                  const n = await addDemoProperties();
-                  await load();
-                  setNotice(
-                    n > 0
-                      ? `Dodano ${n} działek testowych.`
-                      : "Dane testowe już znajdują się w bazie.",
-                  );
-                } catch (e) {
-                  const msg = e instanceof Error ? e.message : String(e);
-                  setNotice(`Błąd: ${msg}`);
-                  alert(`Nie udało się dodać danych testowych:\n\n${msg}`);
-                } finally {
-                  setDemoBusy(false);
-                }
-              }}
-            >
-              {demoBusy ? "Dodawanie…" : "Dane testowe"}
-            </button>
-
-            <button className="primary" onClick={() => open()}>
-              + Dodaj działkę
-            </button>
-          </div>
-        </header>
-
-        {notice && (
-          <div
-            className={notice.startsWith("Błąd") ? "notice error" : "notice"}
-          >
-            {notice}
-          </div>
-        )}
+        <Header
+          view={view}
+          demoBusy={demoBusy}
+          notice={notice}
+          onAddDemoData={addDemoData}
+          onAddProperty={() => open()}
+        />
 
         {view === "dash" && (
           <DashboardView
