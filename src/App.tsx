@@ -12,10 +12,10 @@ import {
 } from "./database/properties";
 import type { Property as Item } from "./models/Property";
 import UpdateChecker from "./UpdateChecker";
-import Metric from "./components/Metric";
 import PropertyTable from "./components/PropertyTable";
 import SettingsView from "./components/SettingsView";
 import PropertyForm from "./components/PropertyForm";
+import DashboardView from "./components/DashboardView";
 import { formatMoney, propertyScore } from "./utils/property";
 
 const blank: Omit<Item, "id"> = {
@@ -91,6 +91,11 @@ export default function App() {
 
     await saveProperty(form, edit?.id);
     closeForm();
+    await load();
+  };
+
+  const removeItem = async (id: number) => {
+    await deleteProperty(id);
     await load();
   };
 
@@ -183,34 +188,11 @@ export default function App() {
         )}
 
         {view === "dash" && (
-          <>
-            <section className="metrics">
-              <Metric n={items.length} t="Wszystkie" />
-              <Metric
-                n={items.filter((x) => x.record_type === "real").length}
-                t="Realne"
-              />
-              <Metric
-                n={items.filter((x) => x.record_type === "test").length}
-                t="Testowe"
-              />
-              <Metric
-                n={`${items.length ? (items.reduce((a, b) => a + b.area_ha, 0) / items.length).toFixed(1) : 0} ha`}
-                t="Średnia powierzchnia"
-              />
-            </section>
-
-            <PropertyTable
-              rows={[...items]
-                .sort((a, b) => propertyScore(b) - propertyScore(a))
-                .slice(0, 8)}
-              open={open}
-              del={async (id) => {
-                await deleteProperty(id);
-                await load();
-              }}
-            />
-          </>
+          <DashboardView
+            items={items}
+            open={open}
+            deleteItem={removeItem}
+          />
         )}
 
         {view === "list" && (
@@ -248,8 +230,7 @@ export default function App() {
               open={open}
               del={async (id) => {
                 if (confirm("Usunąć rekord?")) {
-                  await deleteProperty(id);
-                  await load();
+                  await removeItem(id);
                 }
               }}
             />
