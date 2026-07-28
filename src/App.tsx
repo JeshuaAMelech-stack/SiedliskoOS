@@ -1,4 +1,3 @@
-import PropertyModal from "./components/PropertyModal";
 import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -16,7 +15,9 @@ import UpdateChecker from "./UpdateChecker";
 import Metric from "./components/Metric";
 import PropertyTable from "./components/PropertyTable";
 import SettingsView from "./components/SettingsView";
+import PropertyForm from "./components/PropertyForm";
 import { formatMoney, propertyScore } from "./utils/property";
+
 const blank: Omit<Item, "id"> = {
   name: "",
   location: "",
@@ -34,6 +35,7 @@ const blank: Omit<Item, "id"> = {
   price_score: 0,
   notes: "",
 };
+
 const icon = (test: boolean) =>
   L.divIcon({
     className: "",
@@ -41,6 +43,7 @@ const icon = (test: boolean) =>
     iconSize: [24, 34],
     iconAnchor: [12, 34],
   });
+
 export default function App() {
   const [view, setView] = useState<"dash" | "list" | "map" | "settings">(
     "dash",
@@ -53,10 +56,13 @@ export default function App() {
   const [demoBusy, setDemoBusy] = useState(false);
   const [backupBusy, setBackupBusy] = useState(false);
   const [notice, setNotice] = useState("");
+
   const load = async () => setItems(await listProperties());
+
   useEffect(() => {
     initDatabase().then(load);
   }, []);
+
   const shown = useMemo(
     () =>
       items.filter(
@@ -66,20 +72,32 @@ export default function App() {
       ),
     [items, filter, q],
   );
+
   const open = (x?: Item) => {
     setEdit(x || null);
-    setForm(x ? { ...x } : blank);
+    setForm(x ? { ...x } : { ...blank });
   };
-  const submit = async () => {
-    if (!form?.name.trim()) return alert("Podaj nazwę");
-    await saveProperty(form, edit?.id);
+
+  const closeForm = () => {
     setForm(null);
     setEdit(null);
+  };
+
+  const submit = async () => {
+    if (!form?.name.trim()) {
+      alert("Podaj nazwę");
+      return;
+    }
+
+    await saveProperty(form, edit?.id);
+    closeForm();
     await load();
   };
+
   const createBackup = async () => {
     setBackupBusy(true);
     setNotice("Tworzę kopię zapasową…");
+
     try {
       const path = await invoke<string>("create_backup");
       setNotice(`Backup utworzony: ${path}`);
@@ -91,6 +109,7 @@ export default function App() {
       setBackupBusy(false);
     }
   };
+
   return (
     <div className="app">
       <aside>
@@ -103,6 +122,7 @@ export default function App() {
         <button onClick={() => setView("settings")}>⚙ Ustawienia</button>
         <div className="bottom">SQLite · {items.length} rekordów</div>
       </aside>
+
       <main>
         <header>
           <div>
@@ -117,14 +137,17 @@ export default function App() {
             </h1>
             <p>Wyszukiwanie siedliska w Pomorskiem</p>
           </div>
+
           <div className="headerActions">
             <UpdateChecker />
+
             <button
               className="secondary"
               disabled={demoBusy}
               onClick={async () => {
                 setDemoBusy(true);
                 setNotice("Dodaję dane testowe…");
+
                 try {
                   const n = await addDemoProperties();
                   await load();
@@ -136,9 +159,7 @@ export default function App() {
                 } catch (e) {
                   const msg = e instanceof Error ? e.message : String(e);
                   setNotice(`Błąd: ${msg}`);
-                  alert(`Nie udało się dodać danych testowych:
-
-${msg}`);
+                  alert(`Nie udało się dodać danych testowych:\n\n${msg}`);
                 } finally {
                   setDemoBusy(false);
                 }
@@ -146,11 +167,13 @@ ${msg}`);
             >
               {demoBusy ? "Dodawanie…" : "Dane testowe"}
             </button>
+
             <button className="primary" onClick={() => open()}>
               + Dodaj działkę
             </button>
           </div>
         </header>
+
         {notice && (
           <div
             className={notice.startsWith("Błąd") ? "notice error" : "notice"}
@@ -158,6 +181,7 @@ ${msg}`);
             {notice}
           </div>
         )}
+
         {view === "dash" && (
           <>
             <section className="metrics">
@@ -175,6 +199,7 @@ ${msg}`);
                 t="Średnia powierzchnia"
               />
             </section>
+
             <PropertyTable
               rows={[...items]
                 .sort((a, b) => propertyScore(b) - propertyScore(a))
@@ -187,6 +212,7 @@ ${msg}`);
             />
           </>
         )}
+
         {view === "list" && (
           <>
             <div className="toolbar">
@@ -195,6 +221,7 @@ ${msg}`);
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
               />
+
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
@@ -203,6 +230,7 @@ ${msg}`);
                 <option value="real">Realne</option>
                 <option value="test">Testowe</option>
               </select>
+
               <button
                 onClick={async () => {
                   if (confirm("Usunąć testowe?")) {
@@ -214,6 +242,7 @@ ${msg}`);
                 Usuń testowe
               </button>
             </div>
+
             <PropertyTable
               rows={shown}
               open={open}
@@ -226,10 +255,12 @@ ${msg}`);
             />
           </>
         )}
+
         {view === "map" && (
           <div className="mapGrid">
             <div className="mapList">
               <h3>Działki ({shown.length})</h3>
+
               {shown.map((x) => (
                 <button key={x.id} onClick={() => open(x)}>
                   <b>{x.name}</b>
@@ -242,11 +273,13 @@ ${msg}`);
                 </button>
               ))}
             </div>
+
             <MapContainer center={[54.62, 18.08]} zoom={10}>
               <TileLayer
                 attribution="© OpenStreetMap"
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
+
               {shown
                 .filter((x) => x.latitude && x.longitude)
                 .map((x) => (
@@ -269,6 +302,7 @@ ${msg}`);
             </MapContainer>
           </div>
         )}
+
         {view === "settings" && (
           <SettingsView
             backupBusy={backupBusy}
@@ -276,91 +310,15 @@ ${msg}`);
           />
         )}
       </main>
+
       {form && (
-      <PropertyModal onClose={() => setForm(null)}>            <h2>{edit ? "Edytuj" : "Nowa działka"}</h2>
-            <div className="grid">
-              {[
-                ["name", "Nazwa"],
-                ["location", "Miejscowość"],
-                ["price", "Cena"],
-                ["area_ha", "Powierzchnia ha"],
-                ["latitude", "Szerokość"],
-                ["longitude", "Długość"],
-              ].map(([k, l]) => (
-                <label key={k}>
-                  {l}
-                  <input
-                    type={
-                      ["price", "area_ha", "latitude", "longitude"].includes(k)
-                        ? "number"
-                        : "text"
-                    }
-                    step="any"
-                    value={(form as any)[k] ?? ""}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        [k]: [
-                          "price",
-                          "area_ha",
-                          "latitude",
-                          "longitude",
-                        ].includes(k)
-                          ? e.target.value === ""
-                            ? null
-                            : Number(e.target.value)
-                          : e.target.value,
-                      })
-                    }
-                  />
-                </label>
-              ))}
-              <label>
-                Typ
-                <select
-                  value={form.record_type}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      record_type: e.target.value as "real" | "test",
-                    })
-                  }
-                >
-                  <option value="real">Realna</option>
-                  <option value="test">Testowa</option>
-                </select>
-              </label>
-              {(
-                [
-                  "water",
-                  "topography",
-                  "farm_potential",
-                  "pasture",
-                  "access_score",
-                  "price_score",
-                ] as const
-              ).map((k) => (
-                <label key={k}>
-                  {k}: {form[k]}
-                  <input
-                    type="range"
-                    min="0"
-                    max="10"
-                    value={form[k]}
-                    onChange={(e) =>
-                      setForm({ ...form, [k]: Number(e.target.value) })
-                    }
-                  />
-                </label>
-              ))}
-            </div>
-            <div className="actions">
-              <button onClick={() => setForm(null)}>Anuluj</button>
-              <button className="primary" onClick={submit}>
-                Zapisz
-              </button>
-            </div>
-           </PropertyModal>
+        <PropertyForm
+          form={form}
+          isEditing={Boolean(edit)}
+          setForm={setForm}
+          onCancel={closeForm}
+          onSubmit={submit}
+        />
       )}
     </div>
   );
