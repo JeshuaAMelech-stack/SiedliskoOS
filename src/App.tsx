@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
 import {
   initDatabase,
   listProperties,
@@ -15,7 +13,7 @@ import SettingsView from "./components/SettingsView";
 import PropertyForm from "./components/PropertyForm";
 import DashboardView from "./components/DashboardView";
 import ListView from "./components/ListView";
-import { formatMoney, propertyScore } from "./utils/property";
+import MapView from "./components/MapView";
 
 const blank: Omit<Item, "id"> = {
   name: "",
@@ -34,14 +32,6 @@ const blank: Omit<Item, "id"> = {
   price_score: 0,
   notes: "",
 };
-
-const icon = (test: boolean) =>
-  L.divIcon({
-    className: "",
-    html: `<div class="pin ${test ? "test" : "real"}"></div>`,
-    iconSize: [24, 34],
-    iconAnchor: [12, 34],
-  });
 
 export default function App() {
   const [view, setView] = useState<"dash" | "list" | "map" | "settings">(
@@ -207,52 +197,7 @@ export default function App() {
           />
         )}
 
-        {view === "map" && (
-          <div className="mapGrid">
-            <div className="mapList">
-              <h3>Działki ({shown.length})</h3>
-
-              {shown.map((x) => (
-                <button key={x.id} onClick={() => open(x)}>
-                  <b>{x.name}</b>
-                  <span>
-                    {x.location} · {x.area_ha} ha
-                  </span>
-                  <small>
-                    {formatMoney(x.price)} · {propertyScore(x)}/100
-                  </small>
-                </button>
-              ))}
-            </div>
-
-            <MapContainer center={[54.62, 18.08]} zoom={10}>
-              <TileLayer
-                attribution="© OpenStreetMap"
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-
-              {shown
-                .filter((x) => x.latitude && x.longitude)
-                .map((x) => (
-                  <Marker
-                    key={x.id}
-                    position={[x.latitude!, x.longitude!]}
-                    icon={icon(x.record_type === "test")}
-                  >
-                    <Popup>
-                      <b>{x.name}</b>
-                      <br />
-                      {x.location}
-                      <br />
-                      {formatMoney(x.price)} · {x.area_ha} ha
-                      <br />
-                      {propertyScore(x)}/100
-                    </Popup>
-                  </Marker>
-                ))}
-            </MapContainer>
-          </div>
-        )}
+        {view === "map" && <MapView rows={shown} open={open} />}
 
         {view === "settings" && (
           <SettingsView
