@@ -14,6 +14,7 @@ import type { Property as Item } from "./models/Property";
 import UpdateChecker from "./UpdateChecker";
 import Metric from "./components/Metric";
 import PropertyTable from "./components/PropertyTable";
+import SettingsView from "./components/SettingsView";
 import { formatMoney, propertyScore } from "./utils/property";
 const blank: Omit<Item, "id"> = {
   name: "",
@@ -268,41 +269,10 @@ ${msg}`);
           </div>
         )}
         {view === "settings" && (
-          <div className="settingsPage">
-            <section className="settingsCard">
-              <div>
-                <span className="settingsLabel">Wersja aplikacji</span>
-                <strong>SiedliskoOS 0.2.1</strong>
-              </div>
-              <span className="settingsBadge">ALPHA</span>
-            </section>
-
-            <section className="settingsCard settingsColumn">
-              <div>
-                <span className="settingsLabel">Lokalna baza danych</span>
-                <strong>SQLite · siedliskoos.db</strong>
-                <p>Dane działek są przechowywane lokalnie na tym komputerze.</p>
-              </div>
-            </section>
-
-            <section className="settingsCard settingsColumn">
-              <div>
-                <span className="settingsLabel">Kopia zapasowa</span>
-                <strong>Backup i przywracanie</strong>
-                <p>
-                  Kopia bazy zostanie zapisana w katalogu danych aplikacji, w
-                  folderze Backups.
-                </p>
-              </div>
-              <button
-                className="primary"
-                disabled={backupBusy}
-                onClick={createBackup}
-              >
-                {backupBusy ? "Tworzenie…" : "Utwórz backup"}
-              </button>
-            </section>
-          </div>
+          <SettingsView
+            backupBusy={backupBusy}
+            createBackup={createBackup}
+          />
         )}
       </main>
       {form && (
