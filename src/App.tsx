@@ -1,3 +1,4 @@
+import PropertyModal from "./components/PropertyModal";
 import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -276,9 +277,7 @@ ${msg}`);
         )}
       </main>
       {form && (
-        <div className="overlay" onMouseDown={() => setForm(null)}>
-          <div className="modal" onMouseDown={(e) => e.stopPropagation()}>
-            <h2>{edit ? "Edytuj" : "Nowa działka"}</h2>
+      <PropertyModal onClose={() => setForm(null)}>            <h2>{edit ? "Edytuj" : "Nowa działka"}</h2>
             <div className="grid">
               {[
                 ["name", "Nazwa"],
@@ -361,8 +360,7 @@ ${msg}`);
                 Zapisz
               </button>
             </div>
-          </div>
-        </div>
+           </PropertyModal>
       )}
     </div>
   );
