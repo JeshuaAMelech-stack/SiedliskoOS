@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { addDemoProperties } from "./database/properties";
 import SettingsView from "./components/SettingsView";
 import PropertyForm from "./components/PropertyForm";
@@ -9,13 +8,13 @@ import MapView from "./components/MapView";
 import Header, { type AppView } from "./components/Header";
 import Sidebar from "./components/Sidebar";
 import useProperties from "./hooks/useProperties";
+import useBackup from "./hooks/useBackup";
 
 export default function App() {
   const [view, setView] = useState<AppView>("dash");
   const [filter, setFilter] = useState("all");
   const [q, setQ] = useState("");
   const [demoBusy, setDemoBusy] = useState(false);
-  const [backupBusy, setBackupBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
   const {
@@ -29,6 +28,8 @@ export default function App() {
     submit,
     removeItem,
   } = useProperties();
+
+  const { backupBusy, createBackup } = useBackup(setNotice);
 
   const shown = useMemo(
     () =>
@@ -58,22 +59,6 @@ export default function App() {
       alert(`Nie udało się dodać danych testowych:\n\n${msg}`);
     } finally {
       setDemoBusy(false);
-    }
-  };
-
-  const createBackup = async () => {
-    setBackupBusy(true);
-    setNotice("Tworzę kopię zapasową…");
-
-    try {
-      const path = await invoke<string>("create_backup");
-      setNotice(`Backup utworzony: ${path}`);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      setNotice(`Błąd: ${msg}`);
-      alert(`Nie udało się utworzyć backupu:\n\n${msg}`);
-    } finally {
-      setBackupBusy(false);
     }
   };
 

@@ -9,3 +9,5 @@ DANE_DO_GITHUB_SECRETS.txt
 # macOS
 .DS_Store
 **/.DS_Store
+
+*.zip
