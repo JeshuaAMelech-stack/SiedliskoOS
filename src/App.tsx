@@ -14,6 +14,7 @@ import DashboardView from "./components/DashboardView";
 import ListView from "./components/ListView";
 import MapView from "./components/MapView";
 import Header, { type AppView } from "./components/Header";
+import Sidebar from "./components/Sidebar";
 
 const blank: Omit<Item, "id"> = {
   name: "",
@@ -125,16 +126,11 @@ export default function App() {
 
   return (
     <div className="app">
-      <aside>
-        <div className="brand">
-          🌲 SiedliskoOS <small>ALPHA · v0.2.1</small>
-        </div>
-        <button onClick={() => setView("dash")}>Dashboard</button>
-        <button onClick={() => setView("list")}>Nieruchomości</button>
-        <button onClick={() => setView("map")}>Mapa</button>
-        <button onClick={() => setView("settings")}>⚙ Ustawienia</button>
-        <div className="bottom">SQLite · {items.length} rekordów</div>
-      </aside>
+      <Sidebar
+        view={view}
+        itemCount={items.length}
+        onChangeView={setView}
+      />
 
       <main>
         <Header
