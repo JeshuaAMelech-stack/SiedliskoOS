@@ -1,4 +1,9 @@
-import { useCallback, useState } from "react";
+import {
+  useCallback,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { invoke } from "@tauri-apps/api/core";
 
 type UseBackupResult = {
@@ -7,7 +12,7 @@ type UseBackupResult = {
 };
 
 export default function useBackup(
-  setNotice: (message: string) => void,
+  setNotice: Dispatch<SetStateAction<string>>,
 ): UseBackupResult {
   const [backupBusy, setBackupBusy] = useState(false);
 

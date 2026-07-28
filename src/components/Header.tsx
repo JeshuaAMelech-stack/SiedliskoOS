@@ -1,6 +1,5 @@
 import UpdateChecker from "../UpdateChecker";
-
-export type AppView = "dash" | "list" | "map" | "settings";
+import type { AppView } from "../models/App";
 
 type Props = {
   view: AppView;
@@ -24,6 +23,10 @@ export default function Header({
   onAddDemoData,
   onAddProperty,
 }: Props) {
+  const noticeClassName = notice.startsWith("Błąd")
+    ? "notice error"
+    : "notice";
+
   return (
     <>
       <header>
@@ -49,13 +52,7 @@ export default function Header({
         </div>
       </header>
 
-      {notice && (
-        <div
-          className={notice.startsWith("Błąd") ? "notice error" : "notice"}
-        >
-          {notice}
-        </div>
-      )}
+      {notice && <div className={noticeClassName}>{notice}</div>}
     </>
   );
 }

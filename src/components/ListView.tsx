@@ -1,13 +1,14 @@
-import type { Property } from "../models/Property";
 import { deleteTestProperties } from "../database/properties";
+import type { PropertyFilter } from "../models/App";
+import type { Property } from "../models/Property";
 import PropertyTable from "./PropertyTable";
 
 type Props = {
   rows: Property[];
   query: string;
-  filter: string;
+  filter: PropertyFilter;
   setQuery: (value: string) => void;
-  setFilter: (value: string) => void;
+  setFilter: (value: PropertyFilter) => void;
   open: (property: Property) => void;
   deleteItem: (id: number) => void | Promise<void>;
   reload: () => void | Promise<void>;
@@ -51,7 +52,9 @@ export default function ListView({
 
         <select
           value={filter}
-          onChange={(event) => setFilter(event.target.value)}
+          onChange={(event) =>
+            setFilter(event.target.value as PropertyFilter)
+          }
         >
           <option value="all">Wszystkie</option>
           <option value="real">Realne</option>

@@ -1,4 +1,4 @@
-import type { AppView } from "./Header";
+import type { AppView } from "../models/App";
 
 type Props = {
   view: AppView;
@@ -6,30 +6,36 @@ type Props = {
   onChangeView: (view: AppView) => void;
 };
 
+const navigationItems: Array<{
+  view: AppView;
+  label: string;
+}> = [
+  { view: "dash", label: "Dashboard" },
+  { view: "list", label: "Nieruchomości" },
+  { view: "map", label: "Mapa" },
+  { view: "settings", label: "⚙ Ustawienia" },
+];
+
 export default function Sidebar({
   view,
   itemCount,
   onChangeView,
 }: Props) {
-  const navButton = (target: AppView, label: string) => (
-    <button
-      className={view === target ? "active" : undefined}
-      onClick={() => onChangeView(target)}
-    >
-      {label}
-    </button>
-  );
-
   return (
     <aside>
       <div className="brand">
         🌲 SiedliskoOS <small>ALPHA · v0.2.1</small>
       </div>
 
-      {navButton("dash", "Dashboard")}
-      {navButton("list", "Nieruchomości")}
-      {navButton("map", "Mapa")}
-      {navButton("settings", "⚙ Ustawienia")}
+      {navigationItems.map((item) => (
+        <button
+          key={item.view}
+          className={view === item.view ? "active" : undefined}
+          onClick={() => onChangeView(item.view)}
+        >
+          {item.label}
+        </button>
+      ))}
 
       <div className="bottom">SQLite · {itemCount} rekordów</div>
     </aside>

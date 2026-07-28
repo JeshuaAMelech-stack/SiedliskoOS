@@ -1,25 +1,26 @@
 import { useMemo, useState } from "react";
-import SettingsView from "./components/SettingsView";
-import PropertyForm from "./components/PropertyForm";
 import DashboardView from "./components/DashboardView";
+import Header from "./components/Header";
 import ListView from "./components/ListView";
 import MapView from "./components/MapView";
-import Header, { type AppView } from "./components/Header";
+import PropertyForm from "./components/PropertyForm";
+import SettingsView from "./components/SettingsView";
 import Sidebar from "./components/Sidebar";
-import useProperties from "./hooks/useProperties";
 import useBackup from "./hooks/useBackup";
 import useDemoData from "./hooks/useDemoData";
+import useProperties from "./hooks/useProperties";
+import type { AppView, PropertyFilter } from "./models/App";
 
 export default function App() {
   const [view, setView] = useState<AppView>("dash");
-  const [filter, setFilter] = useState("all");
-  const [q, setQ] = useState("");
+  const [filter, setFilter] = useState<PropertyFilter>("all");
+  const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
 
   const {
-    items,
+    items: properties,
     form,
-    edit,
+    edit: editingProperty,
     setForm,
     load,
     open,
@@ -31,21 +32,27 @@ export default function App() {
   const { backupBusy, createBackup } = useBackup(setNotice);
   const { demoBusy, addDemoData } = useDemoData(load, setNotice);
 
-  const shown = useMemo(
-    () =>
-      items.filter(
-        (x) =>
-          (filter === "all" || x.record_type === filter) &&
-          `${x.name} ${x.location}`.toLowerCase().includes(q.toLowerCase()),
-      ),
-    [items, filter, q],
-  );
+  const visibleProperties = useMemo(() => {
+    const normalisedQuery = query.trim().toLowerCase();
+
+    return properties.filter((property) => {
+      const matchesFilter =
+        filter === "all" || property.record_type === filter;
+      const matchesQuery =
+        !normalisedQuery ||
+        `${property.name} ${property.location}`
+          .toLowerCase()
+          .includes(normalisedQuery);
+
+      return matchesFilter && matchesQuery;
+    });
+  }, [filter, properties, query]);
 
   return (
     <div className="app">
       <Sidebar
         view={view}
-        itemCount={items.length}
+        itemCount={properties.length}
         onChangeView={setView}
       />
 
@@ -60,7 +67,7 @@ export default function App() {
 
         {view === "dash" && (
           <DashboardView
-            items={items}
+            items={properties}
             open={open}
             deleteItem={removeItem}
           />
@@ -68,10 +75,10 @@ export default function App() {
 
         {view === "list" && (
           <ListView
-            rows={shown}
-            query={q}
+            rows={visibleProperties}
+            query={query}
             filter={filter}
-            setQuery={setQ}
+            setQuery={setQuery}
             setFilter={setFilter}
             open={open}
             deleteItem={removeItem}
@@ -79,7 +86,9 @@ export default function App() {
           />
         )}
 
-        {view === "map" && <MapView rows={shown} open={open} />}
+        {view === "map" && (
+          <MapView rows={visibleProperties} open={open} />
+        )}
 
         {view === "settings" && (
           <SettingsView
@@ -92,7 +101,7 @@ export default function App() {
       {form && (
         <PropertyForm
           form={form}
-          isEditing={Boolean(edit)}
+          isEditing={Boolean(editingProperty)}
           setForm={setForm}
           onCancel={closeForm}
           onSubmit={submit}
