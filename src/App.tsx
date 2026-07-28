@@ -1,13 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import {
-  initDatabase,
-  listProperties,
-  saveProperty,
-  deleteProperty,
-  addDemoProperties,
-} from "./database/properties";
-import type { Property as Item } from "./models/Property";
+import { addDemoProperties } from "./database/properties";
 import SettingsView from "./components/SettingsView";
 import PropertyForm from "./components/PropertyForm";
 import DashboardView from "./components/DashboardView";
@@ -15,41 +8,27 @@ import ListView from "./components/ListView";
 import MapView from "./components/MapView";
 import Header, { type AppView } from "./components/Header";
 import Sidebar from "./components/Sidebar";
-
-const blank: Omit<Item, "id"> = {
-  name: "",
-  location: "",
-  price: 0,
-  area_ha: 0,
-  status: "Nowa",
-  record_type: "real",
-  latitude: null,
-  longitude: null,
-  water: 0,
-  topography: 0,
-  farm_potential: 0,
-  pasture: 0,
-  access_score: 0,
-  price_score: 0,
-  notes: "",
-};
+import useProperties from "./hooks/useProperties";
 
 export default function App() {
   const [view, setView] = useState<AppView>("dash");
-  const [items, setItems] = useState<Item[]>([]);
   const [filter, setFilter] = useState("all");
   const [q, setQ] = useState("");
-  const [form, setForm] = useState<Omit<Item, "id"> | null>(null);
-  const [edit, setEdit] = useState<Item | null>(null);
   const [demoBusy, setDemoBusy] = useState(false);
   const [backupBusy, setBackupBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
-  const load = async () => setItems(await listProperties());
-
-  useEffect(() => {
-    initDatabase().then(load);
-  }, []);
+  const {
+    items,
+    form,
+    edit,
+    setForm,
+    load,
+    open,
+    closeForm,
+    submit,
+    removeItem,
+  } = useProperties();
 
   const shown = useMemo(
     () =>
@@ -60,32 +39,6 @@ export default function App() {
       ),
     [items, filter, q],
   );
-
-  const open = (x?: Item) => {
-    setEdit(x || null);
-    setForm(x ? { ...x } : { ...blank });
-  };
-
-  const closeForm = () => {
-    setForm(null);
-    setEdit(null);
-  };
-
-  const submit = async () => {
-    if (!form?.name.trim()) {
-      alert("Podaj nazwę");
-      return;
-    }
-
-    await saveProperty(form, edit?.id);
-    closeForm();
-    await load();
-  };
-
-  const removeItem = async (id: number) => {
-    await deleteProperty(id);
-    await load();
-  };
 
   const addDemoData = async () => {
     setDemoBusy(true);
