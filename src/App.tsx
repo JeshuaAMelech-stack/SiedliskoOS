@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import DashboardView from "./components/DashboardView";
 import Header from "./components/Header";
+import InternetCaptureModal from "./components/InternetCaptureModal";
 import ListView from "./components/ListView";
 import MapView from "./components/MapView";
 import PropertyForm from "./components/PropertyForm";
@@ -16,6 +17,7 @@ export default function App() {
   const [filter, setFilter] = useState<PropertyFilter>("all");
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
+  const [captureOpen, setCaptureOpen] = useState(false);
 
   const {
     items: properties,
@@ -26,6 +28,7 @@ export default function App() {
     open,
     closeForm,
     submit,
+    add,
     removeItem,
   } = useProperties();
 
@@ -63,6 +66,7 @@ export default function App() {
           notice={notice}
           onAddDemoData={addDemoData}
           onAddProperty={() => open()}
+          onCaptureInternet={() => setCaptureOpen(true)}
         />
 
         {view === "dash" && (
@@ -97,6 +101,16 @@ export default function App() {
           />
         )}
       </main>
+
+      {captureOpen && (
+        <InternetCaptureModal
+          onClose={() => setCaptureOpen(false)}
+          onSave={async (property) => {
+            await add(property);
+            setView("dash");
+          }}
+        />
+      )}
 
       {form && (
         <PropertyForm

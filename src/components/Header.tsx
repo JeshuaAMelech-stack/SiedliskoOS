@@ -7,6 +7,7 @@ type Props = {
   notice: string;
   onAddDemoData: () => void | Promise<void>;
   onAddProperty: () => void;
+  onCaptureInternet: () => void;
 };
 
 const titles: Record<AppView, string> = {
@@ -22,6 +23,7 @@ export default function Header({
   notice,
   onAddDemoData,
   onAddProperty,
+  onCaptureInternet,
 }: Props) {
   const noticeClassName = notice.startsWith("Błąd")
     ? "notice error"
@@ -44,6 +46,10 @@ export default function Header({
             onClick={onAddDemoData}
           >
             {demoBusy ? "Dodawanie…" : "Dane testowe"}
+          </button>
+
+          <button className="secondary" onClick={onCaptureInternet}>
+            🌐 Dodaj z Internetu
           </button>
 
           <button className="primary" onClick={onAddProperty}>

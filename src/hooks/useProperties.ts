@@ -40,6 +40,7 @@ type UsePropertiesResult = {
   open: (property?: Property) => void;
   closeForm: () => void;
   submit: () => Promise<void>;
+  add: (property: PropertyInput) => Promise<void>;
   removeItem: (id: number) => Promise<void>;
 };
 
@@ -82,6 +83,14 @@ export default function useProperties(): UsePropertiesResult {
     await load();
   }, [closeForm, edit?.id, form, load]);
 
+  const add = useCallback(
+    async (property: PropertyInput) => {
+      await saveProperty(property);
+      await load();
+    },
+    [load],
+  );
+
   const removeItem = useCallback(
     async (id: number) => {
       await deleteProperty(id);
@@ -99,6 +108,7 @@ export default function useProperties(): UsePropertiesResult {
     open,
     closeForm,
     submit,
+    add,
     removeItem,
   };
 }
