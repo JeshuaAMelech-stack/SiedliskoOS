@@ -108,6 +108,7 @@ export default function App() {
           onSave={async (property) => {
             await add(property);
             setView("dash");
+            setNotice(`Zapisano nieruchomość: ${property.name}`);
           }}
         />
       )}

@@ -3,8 +3,15 @@ import type { PropertyInput } from "./Property";
 export type CaptureResult = {
   source_url: string;
   final_url: string;
+  portal: string;
+  parser: string;
   title: string;
   description: string;
+  location: string;
+  price: number;
+  area_ha: number;
+  confidence: number;
+  missing_fields: string[];
   captured_at: string;
   html_path: string;
   metadata_path: string;
