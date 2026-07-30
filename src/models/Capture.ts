@@ -5,6 +5,7 @@ export type CaptureResult = {
   final_url: string;
   portal: string;
   parser: string;
+  source_title: string;
   title: string;
   description: string;
   location: string;

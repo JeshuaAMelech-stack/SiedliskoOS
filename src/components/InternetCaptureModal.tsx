@@ -168,7 +168,7 @@ export default function InternetCaptureModal({ onClose, onSave }: Props) {
             <div className="captureSourceCard">
               <div>
                 <span className="captureSourceLabel">{result.portal || "Internet"}</span>
-                <strong>{result.title || "Strona bez tytułu"}</strong>
+                <strong>{result.source_title || result.title || "Strona bez tytułu"}</strong>
                 <a href={result.final_url} target="_blank" rel="noreferrer">{result.final_url}</a>
               </div>
               <span>{Math.max(1, Math.round(result.content_length / 1024))} KB</span>
