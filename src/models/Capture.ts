@@ -17,9 +17,10 @@ export type CaptureResult = {
   html_path: string;
   metadata_path: string;
   content_length: number;
+  listing_id: string;
 };
 
 export type CaptureDraft = Pick<
   PropertyInput,
-  "name" | "location" | "price" | "area_ha" | "notes"
+  "name" | "location" | "price" | "area_ha" | "notes" | "source_url" | "portal" | "listing_id" | "captured_at"
 >;

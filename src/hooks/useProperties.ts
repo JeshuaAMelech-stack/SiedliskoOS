@@ -29,6 +29,10 @@ const blankProperty: PropertyInput = {
   access_score: 0,
   price_score: 0,
   notes: "",
+  source_url: "",
+  portal: "",
+  listing_id: "",
+  captured_at: "",
 };
 
 type UsePropertiesResult = {

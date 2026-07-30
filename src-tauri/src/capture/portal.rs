@@ -7,6 +7,7 @@ pub enum Portal {
     NieruchomosciOnline,
     Morizon,
     Gratka,
+    Adresowo,
     Generic,
 }
 
@@ -23,6 +24,8 @@ impl Portal {
             Self::Morizon
         } else if host.contains("gratka") {
             Self::Gratka
+        } else if host.contains("adresowo") {
+            Self::Adresowo
         } else {
             Self::Generic
         }
@@ -35,6 +38,7 @@ impl Portal {
             Self::NieruchomosciOnline => "Nieruchomosci-online".to_string(),
             Self::Morizon => "Morizon".to_string(),
             Self::Gratka => "Gratka".to_string(),
+            Self::Adresowo => "Adresowo.pl".to_string(),
             Self::Generic => url
                 .host_str()
                 .unwrap_or("Internet")
@@ -51,6 +55,7 @@ impl Portal {
             Self::NieruchomosciOnline => format!("Nieruchomosci-online Parser v1 · {source}"),
             Self::Morizon => format!("Morizon Parser v1 · {source}"),
             Self::Gratka => format!("Gratka Parser v1 · {source}"),
+            Self::Adresowo => format!("Adresowo Parser v2 · {source}"),
             Self::Generic => format!("Universal Parser v1 · {source}"),
         }
     }

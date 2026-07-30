@@ -17,6 +17,10 @@ export type Property = {
   access_score: number;
   price_score: number;
   notes: string;
+  source_url: string;
+  portal: string;
+  listing_id: string;
+  captured_at: string;
 };
 
 export type PropertyInput = Omit<Property, 'id'>;

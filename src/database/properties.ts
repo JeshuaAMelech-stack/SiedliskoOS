@@ -12,9 +12,9 @@ async function getDatabase(): Promise<Database> {
 }
 
 export async function initDatabase(): Promise<void> {
-  const db = await getDatabase();
+  const migrationDb = await Database.load('sqlite:siedliskoos.db');
 
-  await db.execute(`
+  await migrationDb.execute(`
     CREATE TABLE IF NOT EXISTS properties (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -32,18 +32,64 @@ export async function initDatabase(): Promise<void> {
       access_score INTEGER DEFAULT 0,
       price_score INTEGER DEFAULT 0,
       notes TEXT DEFAULT '',
+      source_url TEXT DEFAULT '',
+      portal TEXT DEFAULT '',
+      listing_id TEXT DEFAULT '',
+      captured_at TEXT DEFAULT '',
       demo_key TEXT UNIQUE,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  const columns = await migrationDb.select<Array<{ name: string }>>(
+    'PRAGMA table_info(properties)'
+  );
+  const existingColumns = new Set(columns.map((column) => column.name));
+  const migrations = [
+    ['source_url', "TEXT DEFAULT ''"],
+    ['portal', "TEXT DEFAULT ''"],
+    ['listing_id', "TEXT DEFAULT ''"],
+    ['captured_at', "TEXT DEFAULT ''"],
+  ] as const;
+
+  for (const [column, definition] of migrations) {
+    if (!existingColumns.has(column)) {
+      await migrationDb.execute(`ALTER TABLE properties ADD COLUMN ${column} ${definition}`);
+    }
+  }
+
+  await migrationDb.close();
+  database = null;
 }
 
 export async function listProperties(): Promise<Property[]> {
   const db = await getDatabase();
 
-  return db.select<Property[]>(
-    'SELECT * FROM properties ORDER BY id DESC'
-  );
+  return db.select<Property[]>(`
+    SELECT
+      id,
+      name,
+      COALESCE(location, '') AS location,
+      COALESCE(price, 0) AS price,
+      COALESCE(area_ha, 0) AS area_ha,
+      COALESCE(status, 'Nowa') AS status,
+      COALESCE(record_type, 'real') AS record_type,
+      latitude,
+      longitude,
+      COALESCE(water, 0) AS water,
+      COALESCE(topography, 0) AS topography,
+      COALESCE(farm_potential, 0) AS farm_potential,
+      COALESCE(pasture, 0) AS pasture,
+      COALESCE(access_score, 0) AS access_score,
+      COALESCE(price_score, 0) AS price_score,
+      COALESCE(notes, '') AS notes,
+      COALESCE(source_url, '') AS source_url,
+      COALESCE(portal, '') AS portal,
+      COALESCE(listing_id, '') AS listing_id,
+      COALESCE(captured_at, '') AS captured_at
+    FROM properties
+    ORDER BY id DESC
+  `);
 }
 
 export async function deleteProperty(id: number): Promise<void> {
@@ -85,6 +131,10 @@ export async function saveProperty(
     property.access_score,
     property.price_score,
     property.notes,
+    property.source_url,
+    property.portal,
+    property.listing_id,
+    property.captured_at,
   ];
 
   if (id) {
@@ -106,8 +156,12 @@ export async function saveProperty(
           pasture = $12,
           access_score = $13,
           price_score = $14,
-          notes = $15
-        WHERE id = $16
+          notes = $15,
+          source_url = $16,
+          portal = $17,
+          listing_id = $18,
+          captured_at = $19
+        WHERE id = $20
       `,
       [...params, id]
     );
@@ -132,12 +186,17 @@ export async function saveProperty(
         pasture,
         access_score,
         price_score,
-        notes
+        notes,
+        source_url,
+        portal,
+        listing_id,
+        captured_at
       )
       VALUES (
         $1, $2, $3, $4, $5,
         $6, $7, $8, $9, $10,
-        $11, $12, $13, $14, $15
+        $11, $12, $13, $14, $15,
+        $16, $17, $18, $19
       )
     `,
     params

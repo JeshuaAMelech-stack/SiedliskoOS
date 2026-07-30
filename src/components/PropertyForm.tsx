@@ -19,6 +19,9 @@ const textAndNumberFields = [
   ["area_ha", "Powierzchnia ha"],
   ["latitude", "Szerokość"],
   ["longitude", "Długość"],
+  ["source_url", "Link do ogłoszenia"],
+  ["portal", "Portal"],
+  ["listing_id", "ID ogłoszenia"],
 ] as const;
 
 const numberFields = new Set([
@@ -66,7 +69,7 @@ export default function PropertyForm({
           <label key={key}>
             {label}
             <input
-              type={numberFields.has(key) ? "number" : "text"}
+              type={key === "source_url" ? "url" : numberFields.has(key) ? "number" : "text"}
               step="any"
               value={form[key] ?? ""}
               onChange={(event) => {
@@ -114,6 +117,18 @@ export default function PropertyForm({
           </label>
         ))}
       </div>
+
+      {form.source_url && (
+        <div className="propertySourceBox">
+          <div>
+            <span>Źródło ogłoszenia</span>
+            <strong>{form.portal || "Internet"}{form.listing_id ? ` · ${form.listing_id}` : ""}</strong>
+          </div>
+          <a className="sourceLinkButton" href={form.source_url} target="_blank" rel="noreferrer">
+            Otwórz ogłoszenie ↗
+          </a>
+        </div>
+      )}
 
       <div className="actions">
         <button onClick={onCancel}>Anuluj</button>

@@ -24,6 +24,7 @@ struct CaptureResult {
     html_path: String,
     metadata_path: String,
     content_length: usize,
+    listing_id: String,
 }
 
 #[tauri::command]
@@ -122,6 +123,12 @@ async fn capture_listing(app: tauri::AppHandle, url: String) -> Result<CaptureRe
         .map_err(|error| format!("Nie można zapisać strony: {error}"))?;
 
     let content_length = html.len();
+    let listing_id = final_parsed
+        .path_segments()
+        .and_then(|segments| segments.filter(|segment| !segment.is_empty()).last())
+        .unwrap_or_default()
+        .to_string();
+
     let result = CaptureResult {
         source_url: parsed_url.to_string(),
         final_url,
@@ -139,6 +146,7 @@ async fn capture_listing(app: tauri::AppHandle, url: String) -> Result<CaptureRe
         html_path: html_path.to_string_lossy().to_string(),
         metadata_path: metadata_path.to_string_lossy().to_string(),
         content_length,
+        listing_id,
     };
 
     let metadata = serde_json::to_string_pretty(&result)

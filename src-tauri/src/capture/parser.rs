@@ -49,10 +49,8 @@ pub fn parse_listing(portal: Portal, html: &str) -> ParsedListing {
         .or_else(|| generic_price_from_text(&combined))
         .unwrap_or(0.0);
 
-    let area_ha = json_ld
-        .iter()
-        .find_map(extract_area_ha)
-        .or_else(|| generic_area_from_text(&combined))
+    let area_ha = generic_area_from_text(&combined)
+        .or_else(|| json_ld.iter().find_map(extract_area_ha))
         .unwrap_or(0.0);
 
     let title = smart_title(&location, area_ha, &source_title);
@@ -146,6 +144,21 @@ fn clean_source_title(value: &str) -> String {
 }
 
 fn portal_location_from_text(_portal: Portal, text: &str) -> Option<String> {
+    let lowercase = text.to_lowercase();
+    for marker in ["w miejscowości ", "miejscowości ", " wsi "] {
+        if let Some(offset) = lowercase.find(marker) {
+            let tail = &text[offset + marker.len()..];
+            let candidate = tail
+                .split(['-', '|', '•', ',', '.', ':'])
+                .next()
+                .unwrap_or_default()
+                .trim();
+            if candidate.len() >= 2 && candidate.len() <= 50 {
+                return Some(candidate.to_string());
+            }
+        }
+    }
+
     for marker in [" w ", " koło ", " okolice "] {
         if let Some(offset) = text.to_lowercase().find(marker) {
             let tail = &text[offset + marker.len()..];
@@ -315,17 +328,68 @@ fn generic_area_from_text(text: &str) -> Option<f64> {
         .replace("mkw", " m2 ")
         .replace("hektarów", " ha ")
         .replace("hektara", " ha ")
-        .replace("hektary", " ha ");
+        .replace("hektary", " ha ")
+        .replace('(', " ")
+        .replace(')', " ")
+        .replace(':', " ")
+        .replace(';', " ");
+
     let words: Vec<&str> = normalised.split_whitespace().collect();
+    let mut hectare_candidates = Vec::new();
+    let mut square_metre_candidates = Vec::new();
+
     for index in 1..words.len() {
-        let unit = words[index].trim_matches(|c: char| !c.is_alphanumeric()).to_lowercase();
-        if unit == "ha" || unit == "m2" {
-            if let Some(number) = parse_number(words[index - 1]) {
-                return Some(if unit == "m2" { number / 10_000.0 } else { number });
+        let unit = words[index]
+            .trim_matches(|c: char| !c.is_alphanumeric())
+            .to_lowercase();
+        if unit != "ha" && unit != "m2" {
+            continue;
+        }
+
+        let mut raw_number = words[index - 1]
+            .trim_matches(|c: char| !(c.is_ascii_digit() || c == ',' || c == '.'))
+            .to_string();
+
+        // Polish listings often format thousands with spaces: "35 400 m2".
+        if unit == "m2" && index >= 2 {
+            let previous = words[index - 2]
+                .trim_matches(|c: char| !c.is_ascii_digit());
+            if previous.len() <= 3
+                && !previous.is_empty()
+                && raw_number.chars().all(|c| c.is_ascii_digit())
+                && raw_number.len() == 3
+            {
+                raw_number = format!("{previous}{raw_number}");
             }
         }
+
+        let Some(number) = parse_number(&raw_number) else { continue; };
+        if number <= 0.0 {
+            continue;
+        }
+
+        if unit == "ha" {
+            // Ignore tiny hectare fragments such as soil-class breakdowns (0.23 ha).
+            hectare_candidates.push(number);
+        } else if number >= 100.0 {
+            square_metre_candidates.push(number / 10_000.0);
+        }
     }
-    None
+
+    // Prefer a clearly stated total in hectares. In descriptions such as
+    // "35 400 m2 (3,54 ha)" this returns 3.54, not a later soil-class fragment.
+    if let Some(value) = hectare_candidates
+        .iter()
+        .copied()
+        .filter(|value| *value >= 0.1)
+        .max_by(|a, b| a.total_cmp(b))
+    {
+        return Some(value);
+    }
+
+    square_metre_candidates
+        .into_iter()
+        .max_by(|a, b| a.total_cmp(b))
 }
 
 fn generic_price_from_text(text: &str) -> Option<f64> {
@@ -360,5 +424,16 @@ mod tests {
     #[test]
     fn creates_square_metre_title_for_small_plot() {
         assert_eq!(smart_title("Robakowo", 0.125, "Działka"), "Robakowo • 1250 m²");
+    }
+
+    #[test]
+    fn reads_total_area_before_soil_class_fragments() {
+        let text = "Działka rolna o powierzchni 35 400 m2 (3,54 ha). grunty IIIb - 0,27 ha IVa - 1,86 ha";
+        assert_eq!(generic_area_from_text(text), Some(3.54));
+    }
+
+    #[test]
+    fn reads_spaced_square_metres() {
+        assert_eq!(generic_area_from_text("powierzchnia 35 400 m2"), Some(3.54));
     }
 }

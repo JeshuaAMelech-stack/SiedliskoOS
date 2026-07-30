@@ -14,6 +14,10 @@ const emptyDraft: CaptureDraft = {
   price: 0,
   area_ha: 0,
   notes: "",
+  source_url: "",
+  portal: "",
+  listing_id: "",
+  captured_at: "",
 };
 
 export default function InternetCaptureModal({ onClose, onSave }: Props) {
@@ -53,6 +57,10 @@ export default function InternetCaptureModal({ onClose, onSave }: Props) {
         location: captured.location || "",
         price: captured.price || 0,
         area_ha: captured.area_ha || 0,
+        source_url: captured.final_url || captured.source_url,
+        portal: captured.portal || "",
+        listing_id: captured.listing_id || "",
+        captured_at: captured.captured_at || "",
         notes: [
           captured.description,
           `Portal: ${captured.portal}`,
@@ -96,6 +104,10 @@ export default function InternetCaptureModal({ onClose, onSave }: Props) {
         access_score: 0,
         price_score: 0,
         notes: draft.notes.trim(),
+        source_url: draft.source_url.trim(),
+        portal: draft.portal.trim(),
+        listing_id: draft.listing_id.trim(),
+        captured_at: draft.captured_at.trim(),
       });
       onClose();
     } catch (saveError) {
@@ -201,6 +213,21 @@ export default function InternetCaptureModal({ onClose, onSave }: Props) {
               <label>
                 Powierzchnia (ha)
                 <input type="number" min="0" step="any" value={draft.area_ha || ""} onChange={(event) => setDraft((current) => ({ ...current, area_ha: Number(event.target.value) }))} />
+              </label>
+
+              <label className="captureWideField">
+                Link do ogłoszenia
+                <input type="url" value={draft.source_url} onChange={(event) => setDraft((current) => ({ ...current, source_url: event.target.value }))} />
+              </label>
+
+              <label>
+                Portal
+                <input value={draft.portal} onChange={(event) => setDraft((current) => ({ ...current, portal: event.target.value }))} />
+              </label>
+
+              <label>
+                ID ogłoszenia
+                <input value={draft.listing_id} onChange={(event) => setDraft((current) => ({ ...current, listing_id: event.target.value }))} />
               </label>
 
               <label className="captureWideField">
